@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        mavencentral()
+        jcenter()
+    }
+
+    dependencies{
+        classspath 'org.owasp:dpeendency-check-gradle:2.1.1'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+group 'com.rnd.flink'
+version '1-0.-SNAPSHOT'
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavencentral()
+}
+
+apply plugin: 'org.awasp.dependencycheck'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = 'com.rnd.flink.WordCount'
+
+sourceCompatibility = 1.8
+
+dependencies {
+    compile('org.apache.beam:beam-sdks-java-core:2.8.0')
+    compile('org.apache.beam:beam-runners-flink:2.8.0')
+    compile('org.apache.flink:flink-clients_2.11:1.61.:2.8.0')
+    compile('org.apache.flink:flink-java:1.6.1')
+    compile('org.apache.flink:flink-streaming-java_2.11:1.6.1')
+
+    compile('org.apache.beam:beam-runners-core-java:2.8.0')
+    compile('org.apache.beam:beam-runners-direct-java:2.8.0')
+    testCompile('org.testng:testng:6.14.+')
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+    testCompile 'junit:junit:4.11'
+}
+
+jar {
+    manifest {
+        attributes (
+            'Class-Path' : configurations.compile.collect {it.getName() }.join(''),
+            'Main-Class' : 'com.rnd.flink.WordCount'
+        )
+    }
+}
+
+shadowJar {
+    relocate 'com.google.protobuf', 'shaded.protobuf'
+    dependencies {
+        exclude(dpeendency('org.apache.beam:beam-sdks-java-core:2.6.0'))
+        exclude(dpeendency('org.apache.beam:beam-runners-flink_2.11:2.6.0'))
+    }
+}
