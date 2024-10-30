@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.DoFn.Teardown;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.values.KV;
 import org.apache.kafka.clients.producer.Callback;
@@ -15,8 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ser.std.ByteArraySerializer;
-
-import avro.shaded.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableBiMap;
 
 public class KakaWriter extends DoFn<KV<String, Iterable<InputData>>, Void> {
     private String topic;
@@ -27,7 +25,7 @@ public class KakaWriter extends DoFn<KV<String, Iterable<InputData>>, Void> {
     public KakaWriter(DataPipelineOptions pipelineOptions){
         try {
             this.topic = pipelineOptions.getOutputTopic();
-            this.config = ImmutableMap.<String, Object>of (
+            this.config = ImmutableBiMap.<String, Object>of (
                 "bootstrap.servers", pipelineOptions.getBootstrapServers(),
                 "key.serializer", ByteArraySerializer.class.getName(),
                 "value.serializer", ByteArraySerializer.class.getName()
@@ -58,7 +56,7 @@ public class KakaWriter extends DoFn<KV<String, Iterable<InputData>>, Void> {
     public void processElement(ProcessContext ctx, final BoundedWindow window) throws Exception {
         try {
             KV<String, Iterable<InputData>> data = ctx.element();
-            LOGGER.debug("sending to kafka: {}, {}", topic, data);
+            LOGGER.info("sending to kafka: {}, {}", topic, data);
             Iterable<InputData> events = data.getValue();
             Iterator<InputData> eventIterator = events.iterator();
             while(eventIterator.hasNext()){
